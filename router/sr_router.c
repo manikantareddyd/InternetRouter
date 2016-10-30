@@ -99,10 +99,11 @@ void sr_handlepacket(struct sr_instance* sr,
   if(frame_type == ethertype_ip)
   {
     printf("IP TYPE RECEIVED\n");
+    sr_process_ip_packet(sr,packet,len,interface);
   }
   else if (frame_type == ethertype_arp)
   {
-    printf("APR TYPE RECEIVED\n");
+    printf("ARP TYPE RECEIVED\n");
   }
   else
   {
@@ -111,3 +112,28 @@ void sr_handlepacket(struct sr_instance* sr,
 
 }/* -- sr_handlepacket -- */
 
+
+unsigned short ipheader_checksum(struct sr_ip_hdr * ip_hdr)
+{
+    struct sr_ip_hdr *iph = ip_hdr;
+    iph->ip_sum = 0;
+    return cksum((unsigned short *)iph,sizeof(struct sr_ip_hdr));
+}
+
+
+void sr_process_ip_packet(struct sr_instance * sr, uint8_t * packet, unsigned int len, char* interface)
+{
+    struct sr_ip_hdr *ip_hdr = (struct ip *)(packet + sizeof(struct sr_ethernet_hdr));
+    if( ip_hdr->ip_sum  != ipheader_checksum(ip_hdr))
+    {
+        printf("\nchecksums differ %x, %x\n", ip_hdr->ip_sum, ipheader_checksum(ip_hdr));
+    }
+    else if(ip_hdr->ip_v != 4)
+    {
+        printf("\nip version is %d; only accepting 4\n",ip_hdr->ip_v);
+    }
+    else
+    {
+       printf("LOL\n"); 
+    }
+}
