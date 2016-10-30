@@ -85,31 +85,31 @@ void sr_handlepacket(struct sr_instance* sr,
         char* interface/* lent */){
 
   /* REQUIRES */
-  assert(sr);
-  assert(packet);
-  assert(interface);
+    assert(sr);
+    assert(packet);
+    assert(interface);
 
-  printf("*** -> Received packet of length %d\n",len);
+    printf("*** -> Received packet of length %d\n",len);
 
-  /* TODO: Add forwarding logic here */
-  struct sr_ethernet_hdr * eth_hdr = (struct sr_ethernet_hdr *) packet;
-  
-  uint16_t frame_type = ntohs(eth_hdr->ether_type);
-  
-  if(frame_type == ethertype_ip)
-  {
-    printf("IP TYPE RECEIVED\n");
-    sr_process_ip_packet(sr,packet,len,interface);
-  }
-  else if (frame_type == ethertype_arp)
-  {
-    printf("ARP TYPE RECEIVED\n");
-    sr_process_arp_packet(sr, (struct sr_arp_hdr*) (packet + sizeof(struct sr_ethernet_hdr)), interface);
-  }
-  else
-  {
-    printf("UNKNOWN TYPE RECEIVED\n");    
-  }
+    /* TODO: Add forwarding logic here */
+    struct sr_ethernet_hdr * eth_hdr = (struct sr_ethernet_hdr *) packet;
+    
+    uint16_t frame_type = ntohs(eth_hdr->ether_type);
+    
+    if(frame_type == ethertype_ip)
+    {
+        printf("IP TYPE RECEIVED\n");
+        sr_process_ip_packet(sr,packet,len,interface);
+    }
+    else if (frame_type == ethertype_arp)
+    {
+        printf("ARP TYPE RECEIVED\n");
+        sr_process_arp_packet(sr, packet, len, interface);
+    }
+    else
+    {
+        printf("UNKNOWN TYPE RECEIVED\n");    
+    }
 
 }/* -- sr_handlepacket -- */
 
