@@ -70,6 +70,9 @@ int sr_read_from_server(struct sr_instance* );
 void sr_init(struct sr_instance* );
 void sr_handlepacket(struct sr_instance* , uint8_t * , unsigned int , char* );
 void sr_process_ip_packet(struct sr_instance * sr,uint8_t * packet, unsigned int len,char* interface);
+void sr_process_arp_data(struct sr_instance * inst, struct sr_arp_hdr * request, char * interface);
+void sr_process_arp_reply(struct sr_instance * inst, struct sr_arp_hdr * reply);
+void sr_arp_reply_to_request(struct sr_instance * inst, struct sr_arp_hdr * request, char * interface);
 
 /* -- sr_if.c -- */
 void sr_add_interface(struct sr_instance* , const char* );
