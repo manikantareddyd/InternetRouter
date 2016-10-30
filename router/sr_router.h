@@ -13,9 +13,12 @@
 #include <netinet/in.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "sr_protocol.h"
 #include "sr_arpcache.h"
+#include "sr_utils.h"
 
 #include "sr_arp_handler.h"
 #include "sr_ip_handler.h"
