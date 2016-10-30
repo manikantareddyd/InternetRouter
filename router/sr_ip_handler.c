@@ -12,6 +12,6 @@ void sr_process_ip_packet(struct sr_instance * sr, uint8_t * packet, unsigned in
     }
     else
     {
-       printf("LOL\n"); 
+       printf("Received a Good IP Packet\n"); 
     }
 }
