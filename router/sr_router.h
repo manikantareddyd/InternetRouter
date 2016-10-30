@@ -16,8 +16,11 @@
 
 #include "sr_protocol.h"
 #include "sr_arpcache.h"
-#include "sr_utils.h"
-/*#include "misc/checksum.c"*/
+
+#include "sr_arp_handler.h"
+#include "sr_ip_handler.h"
+
+#include "checksum.h"
 /* we dont like this debug , but what to do for varargs ? */
 #ifdef _DEBUG_
 #define Debug(x, args...) printf(x, ## args)
@@ -69,10 +72,6 @@ int sr_read_from_server(struct sr_instance* );
 /* -- sr_router.c -- */
 void sr_init(struct sr_instance* );
 void sr_handlepacket(struct sr_instance* , uint8_t * , unsigned int , char* );
-void sr_process_ip_packet(struct sr_instance * sr,uint8_t * packet, unsigned int len,char* interface);
-void sr_process_arp_data(struct sr_instance * inst, struct sr_arp_hdr * request, char * interface);
-void sr_process_arp_reply(struct sr_instance * inst, struct sr_arp_hdr * reply);
-void sr_arp_reply_to_request(struct sr_instance * inst, struct sr_arp_hdr * request, char * interface);
 
 /* -- sr_if.c -- */
 void sr_add_interface(struct sr_instance* , const char* );

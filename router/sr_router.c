@@ -104,7 +104,7 @@ void sr_handlepacket(struct sr_instance* sr,
   else if (frame_type == ethertype_arp)
   {
     printf("ARP TYPE RECEIVED\n");
-    sr_process_arp_data(sr, (struct sr_arp_hdr*) (packet + sizeof(struct sr_ethernet_hdr)), interface);
+    sr_process_arp_packet(sr, (struct sr_arp_hdr*) (packet + sizeof(struct sr_ethernet_hdr)), interface);
   }
   else
   {
@@ -115,53 +115,8 @@ void sr_handlepacket(struct sr_instance* sr,
 
 
 
-void sr_process_arp_data(struct sr_instance * inst, struct sr_arp_hdr * request, char * interface)
-{
-    switch(ntohs(request->ar_op))
-    {
-    case arp_op_request:
-        printf("Its a Request\n");
-        sr_arp_reply_to_request(inst,request,interface);
-        break;
-    case arp_op_reply:
-        printf("Its a Reply\n");
-        sr_process_arp_reply(inst,request);
-        break;
-    }
-}
-
-void sr_process_arp_reply(struct sr_instance * inst, struct sr_arp_hdr * reply)
-{
-  ;  
-}
-
-void sr_arp_reply_to_request(struct sr_instance *inst, struct sr_arp_hdr * request, char *interface)
-{
- ; 
-}
 
 
 
-unsigned short ipheader_checksum(struct sr_ip_hdr * ip_hdr)
-{
-    struct sr_ip_hdr *iph = ip_hdr;
-    iph->ip_sum = 0;
-    return cksum((unsigned short *)iph,sizeof(struct sr_ip_hdr));
-}
 
-void sr_process_ip_packet(struct sr_instance * sr, uint8_t * packet, unsigned int len, char* interface)
-{
-    struct sr_ip_hdr *ip_hdr = (struct sr_ip_hdr *)(packet + sizeof(struct sr_ethernet_hdr));
-    if( ip_hdr->ip_sum  != ipheader_checksum(ip_hdr))
-    {
-        printf("\nchecksums differ %x, %x\n", ip_hdr->ip_sum, ipheader_checksum(ip_hdr));
-    }
-    else if(ip_hdr->ip_v != 4)
-    {
-        printf("\nip version is %d; only accepting 4\n",ip_hdr->ip_v);
-    }
-    else
-    {
-       printf("LOL\n"); 
-    }
-}
+
