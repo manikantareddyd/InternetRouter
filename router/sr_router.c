@@ -92,8 +92,22 @@ void sr_handlepacket(struct sr_instance* sr,
   printf("*** -> Received packet of length %d\n",len);
 
   /* TODO: Add forwarding logic here */
- 
+  struct sr_ethernet_hdr * eth_hdr = (struct sr_ethernet_hdr *) packet;
   
+  uint16_t frame_type = ntohs(eth_hdr->ether_type);
+  
+  if(frame_type == ethertype_ip)
+  {
+    printf("IP TYPE RECEIVED\n");
+  }
+  else if (frame_type == ethertype_arp)
+  {
+    printf("APR TYPE RECEIVED\n");
+  }
+  else
+  {
+    printf("UNKNOWN TYPE RECEIVED\n");    
+  }
 
 }/* -- sr_handlepacket -- */
 
