@@ -27,11 +27,9 @@ void sr_arp_reply_to_request(struct sr_instance *inst, uint8_t *packet, unsigned
         Debug("\tThis packet is indeed for this router. Sending an ARP Reply \n");
         
         /*
-            We'll send a ethernet packet and a arp packet in response
-
+            We'll send a ethernet packet (a arp packet) in response
         */
-        /* len = sizeof(struct sr_ethernet_hdr); */
-
+        
         /* headers */
         sr_ethernet_hdr_t *request_eth_hdr = (sr_ethernet_hdr_t *)(packet);
         sr_arp_hdr_t *request_arp_hdr = (sr_arp_hdr_t *)(packet + sizeof(struct sr_ethernet_hdr));
