@@ -2,6 +2,7 @@
 void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned int len, char* interface)
 {
     struct sr_ip_hdr *ip_hdr = (struct sr_ip_hdr *)(packet + sizeof(struct sr_ethernet_hdr));
+    struct sr_if *iface =sr_get_interface(inst, interface);
     if( ip_hdr->ip_sum  != ipheader_checksum(ip_hdr))
     {
         printf("\nchecksums differ %x, %x\n", ip_hdr->ip_sum, ipheader_checksum(ip_hdr));
@@ -35,7 +36,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
 
            if(ip_hdr->ip_ttl == 0)
            {
-               Debug("\tThis packet has also expired. Simply dropping it\n\tSending a ICMP packet for consistency.\n");
+               Debug("\tThis packet has expired. Simply dropping it\n\tSending a ICMP packet for consistency.\n");
 
                /*
                 To do write code to send ICMP ttl
@@ -66,6 +67,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
            if(forward_rt_entry)
            {
 
+               Debug("\tFound a routing table entry to forward the packet\n");
                /*
                     Check the ARP cache for the next-hop MAC address corresponding to the next-hop IP.
                */
@@ -80,7 +82,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         ARP entry found. We'll send it directly. :P
                    */
                    
-
+                   Debug("\tFound a ARP entry in cache.");
                    sr_ethernet_hdr_t *forward_eth_header = (sr_ethernet_hdr_t *)packet;
 
                     /* Doing the MAC copying stuff */
@@ -106,7 +108,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                     sr_send_packet(
                         inst,
                         packet,
-                        packets->len,
+                        len,
                         iface->name
                     );
                }
