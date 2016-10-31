@@ -79,42 +79,46 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                if(arp_entry)
                {
                    /*
-                        ARP entry found. We'll send it directly. :P
+                        ARP entry found. We'll forward it directly. :P
                    */
-                   
                    Debug("\tFound a ARP entry in cache.");
-                   sr_ethernet_hdr_t *forward_eth_header = (sr_ethernet_hdr_t *)packet;
-
-                    /* Doing the MAC copying stuff */
-                    memcpy(
-                        forward_eth_header->ether_dhost,
-                        arp_entry->mac,
-                        ETHER_ADDR_LEN
-                    );
-
-                    memcpy(
-                        forward_eth_header->ether_shost,
-                        iface->addr,
-                        ETHER_ADDR_LEN
-                    );
-                    
-
-                    /* Checksum related stuff */
-                    sr_ip_hdr_t *forward_ip_header = (sr_ip_hdr_t*)(packet+sizeof(sr_ethernet_hdr_t));
-                    forward_ip_header->ip_sum = 0;
-                    forward_ip_header->ip_sum = cksum(forward_ip_header, sizeof(sr_ip_hdr_t));
-
-                    /* Send this shit now */
-                    sr_send_packet(
-                        inst,
-                        packet,
-                        len,
-                        iface->name
-                    );
+                   sr_forward_packet(inst, packet, arp_entry->mac, len, iface);
                }
                else
                {
-                   
+                   /*
+                        Send an ARP request for the next-hop IP (if one hasn't been
+                        sent within the last second), and add the packet to the queue 
+                        of packets waiting on this ARP request.
+                   */
+                   Debug("\tNo arp entry found in cache.\n");
+                   struct sr_arpreq *arp_req = sr_arpcache_queuereq(
+                       &inst->cache,
+                       ip_hdr->ip_dst,
+                       packet,
+                       len,
+                       forward_rt_entry->interface
+                   );
+
+                   time_t current_time = time(NULL);
+                   if(difftime(current_time, arp_req->sent) > 1.0)
+                   {
+                       if(arp_req->times_sent < 5)
+                       {
+                           Debug("Sending ARP request");
+                           int tmp =1;
+                           ifaces = inst->if_list;
+                           while (ifaces)
+                           {
+                                /*
+                                    We'll send a ethernet packet (a arp packet) in response
+                                */
+                                sr_send_arp_request(inst,packet,len,ifaces);
+
+                                ifaces = ifaces->next;
+                           }
+                       }
+                   }
                }
 
            }
