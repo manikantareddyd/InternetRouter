@@ -6,10 +6,6 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
     {
         printf("\nchecksums differ %x, %x\n", ip_hdr->ip_sum, ipheader_checksum(ip_hdr));
     }
-    else if(ip_hdr->ip_v != 4)
-    {
-        printf("\nip version is %d; only accepting 4\n",ip_hdr->ip_v);
-    }
     else
     {
        printf("Received a Good IP Packet\n");
@@ -32,7 +28,11 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
        {
            Debug("\tThis packet is not meant for us. We'll re-route\n");
 
+           /* Decreasing the ttl*/
            ip_hdr->ip_ttl = ip_hdr->ip_ttl - 1;
+           /* Recomputing Checksum */
+           ip_hdr->ip_sum = cksum(ip_hdr, sizeof(sr_ip_hdr_t));
+
            if(ip_hdr->ip_ttl == 0)
            {
                Debug("\tThis packet has also expired. Simply dropping it\n\tSending a ICMP packet for consistency.\n");
@@ -44,7 +44,28 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
            }
 
            /*Packet not expired. Forwarding it to right interface*/
+           struct sr_rt *forward_rt_entry = NULL;
+
+           /* This is no way Longest Prefix Match */
+           /* Exact matching has been done to find the destination :(*/
+           struct sr_rt* routing_table = inst->routing_table;
+           while(routing_table)
+           {
+               if(forward_rt_entry == NULL || 
+               routing_table->mask.s_addr > forward_rt_entry->mask.s_addr )
+               {
+                   if((ip_hdr->ip_dst & routing_table->mask.s_addr) == 
+                   (routing_table->dest.s_addr & routing_table->mask.s_addr))
+                   {
+                       forward_rt_entry = routing_table;
+                   }
+               }
+               routing_table = routing_table->next;
+           }
+
            
+
+
        }
     }
 }
