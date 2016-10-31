@@ -41,6 +41,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                /*
                 To do write code to send ICMP ttl
                */
+               sr_send_icmp_t11(inst, packet, len, iface);
                return;
            }
 
@@ -140,6 +141,11 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
             */   
 
             Debug("Packet is meant for this router!\n");
+
+            if(ip_hdr->ip_p == ip_protocol_icmp)
+            {
+                Debug("\tReceived a ICMP packet\n");
+            }
        }
     }
 }

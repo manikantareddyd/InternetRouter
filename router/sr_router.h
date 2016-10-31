@@ -21,6 +21,7 @@
 #include "sr_utils.h"
 #include "sr_rt.h"
 
+#include "sr_icmp_handler.h"
 #include "sr_packet_handler.h"
 #include "sr_arp_handler.h"
 #include "sr_ip_handler.h"
