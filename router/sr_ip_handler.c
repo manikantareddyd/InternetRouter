@@ -63,7 +63,59 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                routing_table = routing_table->next;
            }
 
-           
+           if(forward_rt_entry)
+           {
+
+               /*
+                    Check the ARP cache for the next-hop MAC address corresponding to the next-hop IP.
+               */
+               struct sr_arpentry *arp_entry = sr_arpcache_lookup(
+                   &(inst->cache),
+                   ip_hdr->ip_dst
+               );
+
+               if(arp_entry)
+               {
+                   /*
+                        ARP entry found. We'll send it directly. :P
+                   */
+                   
+
+                   sr_ethernet_hdr_t *forward_eth_header = (sr_ethernet_hdr_t *)packet;
+
+                    /* Doing the MAC copying stuff */
+                    memcpy(
+                        forward_eth_header->ether_dhost,
+                        arp_entry->mac,
+                        ETHER_ADDR_LEN
+                    );
+
+                    memcpy(
+                        forward_eth_header->ether_shost,
+                        iface->addr,
+                        ETHER_ADDR_LEN
+                    );
+                    
+
+                    /* Checksum related stuff */
+                    sr_ip_hdr_t *forward_ip_header = (sr_ip_hdr_t*)(packet+sizeof(sr_ethernet_hdr_t));
+                    forward_ip_header->ip_sum = 0;
+                    forward_ip_header->ip_sum = cksum(forward_ip_header, sizeof(sr_ip_hdr_t));
+
+                    /* Send this shit now */
+                    sr_send_packet(
+                        inst,
+                        packet,
+                        packets->len,
+                        iface->name
+                    );
+               }
+               else
+               {
+                   
+               }
+
+           }
 
 
        }
