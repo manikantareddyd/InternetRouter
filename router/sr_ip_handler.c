@@ -45,24 +45,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
            }
 
            /*Packet not expired. Forwarding it to right interface*/
-           struct sr_rt *forward_rt_entry = NULL;
-
-           /* This is no way Longest Prefix Match */
-           /* Exact matching has been done to find the destination :(*/
-           struct sr_rt* routing_table = inst->routing_table;
-           while(routing_table)
-           {
-               if(forward_rt_entry == NULL || 
-               routing_table->mask.s_addr > forward_rt_entry->mask.s_addr )
-               {
-                   if((ip_hdr->ip_dst & routing_table->mask.s_addr) == 
-                   (routing_table->dest.s_addr & routing_table->mask.s_addr))
-                   {
-                       forward_rt_entry = routing_table;
-                   }
-               }
-               routing_table = routing_table->next;
-           }
+           struct sr_rt *forward_rt_entry = sr_find_routing_table_entry(inst->routing_table, ip_hdr);
 
            if(forward_rt_entry)
            {
@@ -83,6 +66,8 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                    */
                    Debug("\tFound a ARP entry in cache.");
                    sr_forward_packet(inst, packet, arp_entry->mac, len, iface);
+                   free(arp_entry);
+                   return;
                }
                else
                {
@@ -91,7 +76,8 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         sent within the last second), and add the packet to the queue 
                         of packets waiting on this ARP request.
                    */
-                   Debug("\tNo arp entry found in cache.\n");
+                   Debug("\tNo ARP entry found in cache.\n");
+                   /* Enqueing */
                    struct sr_arpreq *arp_req = sr_arpcache_queuereq(
                        &inst->cache,
                        ip_hdr->ip_dst,
@@ -117,13 +103,43 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
 
                                 ifaces = ifaces->next;
                            }
+                           arp_req->sent = time(NULL);
+                           arp_req->times_sent = arp_req->times_sent + 1;
+                       }
+                       else
+                       {
+                           /*
+                                We tried so hard (5 times) but still didn't get a reply
+                           */
+                           Debug("\tNo ARP reply found, dropping the packet\n");
+
+                           /*
+                                Send corresponding ICMP packets.
+                           */
+
+                           sr_arpreq_destroy(&inst->cache, arp_req);
                        }
                    }
                }
 
            }
+           else
+           {
+               Debug("No routing table entry was found.\n");
+               /*JK LOL*/
 
+               /*
+                    Send corresponding ICMP packet.
+               */
+           }
+       }
+       else
+       {
+            /*
+                This packet was for us.
+            */   
 
+            Debug("Packet is meant for this router!\n");
        }
     }
 }

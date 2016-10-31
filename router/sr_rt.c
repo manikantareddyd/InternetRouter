@@ -176,3 +176,24 @@ void sr_print_routing_entry(struct sr_rt* entry)
     printf("%s\n",entry->interface);
 
 } /* -- sr_print_routing_entry -- */
+
+struct sr_rt *sr_find_routing_table_entry(struct sr_rt* routing_table, struct sr_ip_hdr *ip_hdr)
+{
+    /* This is no way Longest Prefix Match */
+           /* Exact matching has been done to find the destination :(*/
+    struct sr_rt *forward_rt_entry = NULL;
+    while(routing_table)
+    {
+        if(forward_rt_entry == NULL || 
+        routing_table->mask.s_addr > forward_rt_entry->mask.s_addr )
+        {
+            if((ip_hdr->ip_dst & routing_table->mask.s_addr) == 
+            (routing_table->dest.s_addr & routing_table->mask.s_addr))
+            {
+                forward_rt_entry = routing_table;
+            }
+        }
+        routing_table = routing_table->next;
+    }
+    return forward_rt_entry;
+}
