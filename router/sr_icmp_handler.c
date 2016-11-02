@@ -1,5 +1,5 @@
 #include "sr_icmp_handler.h"
-void sr_send_icmp(struct sr_instance* sr, uint8_t * packet, unsigned int len, uint8_t icmp_type, uint8_t icmp_code, uint32_t src_ip, struct sr_if* recv_iface)
+void sr_send_icmp_t3(struct sr_instance* sr, uint8_t * packet, unsigned int len, uint8_t icmp_type, uint8_t icmp_code, uint32_t src_ip, struct sr_if* recv_iface)
 {
     unsigned int reply_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_t3_hdr_t);
     uint8_t *icmp_t3_reply_packet = (uint8_t *)malloc(reply_len);
@@ -26,7 +26,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t * packet, unsigned int len, ui
 
 
     /* set icmp header */
-    sr_icmp_t3_hdr_t *reply_icmp_t3_hdr = (sr_icmp_t3_hdr_t*) (icmp_t3_reply_packet + sizeof(sr_ethernet_hdr_t)+ sizeof(sr_ip_hdr_t));
+    sr_icmp_t3_hdr_t *reply_icmp_t3_hdr = (sr_icmp_t3_hdr_t*)(icmp_t3_reply_packet + sizeof(sr_ethernet_hdr_t)+ sizeof(sr_ip_hdr_t));
     reply_icmp_t3_hdr->icmp_type = icmp_type;
     reply_icmp_t3_hdr->icmp_code = icmp_code;
     memcpy(reply_icmp_t3_hdr->data, received_ip_hdr, ICMP_DATA_SIZE);

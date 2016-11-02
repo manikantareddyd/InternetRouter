@@ -39,7 +39,8 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                Debug("\tThis packet has expired. Simply dropping it\n\tSending a ICMP packet for consistency.\n");
 
                /*
-                To do write code to send ICMP ttl
+                Send corresponding ICMP packet
+                Time exceeded (type 11, code 0)
                */
                sr_send_icmp_t11(inst, packet, len, iface);
                return;
@@ -116,6 +117,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
 
                            /*
                                 Send corresponding ICMP packets.
+                                Destination host unreachable (type 3, code 1)
                            */
 
                            sr_arpreq_destroy(&inst->cache, arp_req);
@@ -131,6 +133,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
 
                /*
                     Send corresponding ICMP packet.
+                    Destination net unreachable (type 3, code 0)
                */
            }
        }
@@ -145,6 +148,17 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
             if(ip_hdr->ip_p == ip_protocol_icmp)
             {
                 Debug("\tReceived a ICMP packet\n");
+                /*
+                    Send corresponding ICMP packet
+                    Echo reply (type 0)
+                */
+            }
+            else
+            {
+                /*
+                    Send corresponding ICMP packet
+                    Port unreachable (type 3, code 3)
+                */
             }
        }
     }
