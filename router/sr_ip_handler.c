@@ -88,41 +88,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                        forward_rt_entry->interface
                    );
 
-                   time_t current_time = time(NULL);
-                   if(difftime(current_time, arp_req->sent) > 1.0)
-                   {
-                       if(arp_req->times_sent < 5)
-                       {
-                           Debug("Sending ARP request");
-                           int tmp =1;
-                           ifaces = inst->if_list;
-                           while (ifaces)
-                           {
-                                /*
-                                    We'll send a ethernet packet (a arp packet) in response
-                                */
-                                sr_send_arp_request(inst,packet,len,ifaces);
-
-                                ifaces = ifaces->next;
-                           }
-                           arp_req->sent = time(NULL);
-                           arp_req->times_sent = arp_req->times_sent + 1;
-                       }
-                       else
-                       {
-                           /*
-                                We tried so hard (5 times) but still didn't get a reply
-                           */
-                           Debug("\tNo ARP reply found, dropping the packet\n");
-
-                           /*
-                                Send corresponding ICMP packets.
-                                Destination host unreachable (type 3, code 1)
-                           */
-
-                           sr_arpreq_destroy(&inst->cache, arp_req);
-                       }
-                   }
+                   
                }
 
            }

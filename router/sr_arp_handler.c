@@ -28,7 +28,7 @@ void sr_arp_reply_to_request(struct sr_instance *inst, uint8_t *packet, unsigned
         /*
             We'll send a ethernet packet (a arp packet) in response
         */
-        sr_send_arp_request(inst, packet, len, iface);
+        sr_send_arp_request(inst, packet, iface);
     }
     else
     {

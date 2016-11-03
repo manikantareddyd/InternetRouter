@@ -30,8 +30,38 @@
 
 /* See pseudo-code in sr_arpcache.h */
 void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
-  /* TODO: Fill this in */
-  
+/* TODO: Fill this in */
+
+    struct sr_if *iface =sr_get_interface(sr, req->packets->iface);
+    time_t current_time = time(NULL);
+    if(difftime(current_time, req->sent) > 1.0)
+    {
+        if(req->times_sent < 5)
+        {
+            Debug("Sending ARP request\n");
+            
+            /*
+                We'll send a ethernet packet (a arp packet) in response
+            */
+            sr_send_arp_request(sr,(uint8_t *)(req->packets),iface);
+            req->sent = time(NULL);
+            req->times_sent = req->times_sent + 1;
+        }
+        else
+        {
+            /*
+            We tried so hard (5 times) but still didn't get a reply
+            */
+            Debug("\tNo ARP reply found, dropping the packet\n");
+
+            /*
+            Send corresponding ICMP packets.
+            Destination host unreachable (type 3, code 1)
+            */
+
+            sr_arpreq_destroy(&sr->cache, req);
+        }
+    }
 }
 
 /*---------------------------------------------------------------------
