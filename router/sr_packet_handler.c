@@ -36,10 +36,10 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, unsigned int
     /* headers */
     sr_ethernet_hdr_t *request_eth_hdr = (sr_ethernet_hdr_t *)(packet);
     sr_arp_hdr_t *request_arp_hdr = (sr_arp_hdr_t *)(packet + sizeof(struct sr_ethernet_hdr));
-
+    int arp_reply_packet_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_arp_hdr_t);
     /* Create a Reply Packer */
     uint8_t *arp_reply_packet = (uint8_t *) malloc(len);
-    memset(arp_reply_packet, 0, len * sizeof(uint8_t));
+    memset(arp_reply_packet, 0,  arp_reply_packet_len * sizeof(uint8_t));
 
     /* Fill in the reply ethernet Header*/
     sr_ethernet_hdr_t *reply_eth_hdr = (sr_ethernet_hdr_t *)(arp_reply_packet);
@@ -86,7 +86,8 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, unsigned int
     sr_send_packet(
         inst,
         arp_reply_packet,
-        len,
+        arp_reply_packet_len,
         iface->name
     );
+    free(arp_reply_packet);
 }
