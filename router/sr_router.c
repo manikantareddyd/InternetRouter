@@ -38,7 +38,7 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
     {
         if(req->times_sent < 5)
         {
-            Debug("Sending ARP request\n");
+            printf("Sending ARP request %d\n",req->times_sent);
             
             /*
                 We'll send a ethernet packet (a arp packet) in response
@@ -58,7 +58,6 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
             Send corresponding ICMP packets.
             Destination host unreachable (type 3, code 1)
             */
-
             sr_arpreq_destroy(&sr->cache, req);
         }
     }

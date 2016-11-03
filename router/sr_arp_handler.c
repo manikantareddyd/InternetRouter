@@ -39,20 +39,19 @@ void sr_arp_reply_to_request(struct sr_instance *inst, uint8_t *packet, unsigned
 
 void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned int len, char * interface)
 {
-    struct sr_arp_hdr* arp_reply = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
-    Debug("\tCaching the Request\n");
+    struct sr_arp_hdr* arp_reply = (struct sr_arp_hdr*)(packet + sizeof(sr_ethernet_hdr_t));
+    if(inst->cache.requests==NULL) Debug("\tAila\n");
+    else Debug("\tRequests in cache are present\n");
     struct sr_arpreq *arp_request = sr_arpcache_insert(
         &inst->cache,
         arp_reply->ar_sha,
         arp_reply->ar_sip
     );
+    /*Debug("\nPrinting Cache\n");
+    sr_arpcache_dump(&inst->cache);*/
     struct sr_if *iface =sr_get_interface(inst, interface);
-    
-    if(arp_request == NULL)
-    {
-        Debug("\tNothing to do here... Its an empty arp_reply\n");
-    }
-    else
+
+    if(arp_request)
     {
         Debug("\tSending out packets in the resolution queue\n");
         struct sr_packet *packets = arp_request->packets;
@@ -65,5 +64,9 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
             packets = packets->next;
         }
         sr_arpreq_destroy(&inst->cache, arp_request);
+    }
+    else
+    {
+        Debug("\tNothing to do here... Its an empty arp_reply\n");
     }
 }

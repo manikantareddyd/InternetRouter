@@ -87,7 +87,9 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                        len,
                        forward_rt_entry->interface
                    );
-
+                   if(inst->cache.requests == NULL) Debug("This is NULL as feared\n");
+                   else Debug("Its Fine\n");
+                   handle_arpreq(inst,arp_req);
                    
                }
 
