@@ -39,6 +39,7 @@ void sr_arp_reply_to_request(struct sr_instance *inst, uint8_t *packet, unsigned
 void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned int len, char * interface)
 {
     struct sr_arp_hdr* arp_reply = (struct sr_arp_hdr*)(packet + sizeof(sr_ethernet_hdr_t));
+    print_hdr_arp(packet + sizeof(sr_ethernet_hdr_t));
     if(inst->cache.requests==NULL) Debug("\tHola\n");
     else Debug("\tRequests in cache are present\n");
     struct sr_arpreq *arp_request = sr_arpcache_insert(
@@ -66,6 +67,6 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
     }
     else
     {
-        Debug("\tNothing to do here... Its an empty arp_reply\n");
+        Debug("\tNothing to do here.\n");
     }
 }

@@ -32,6 +32,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
            /* Decreasing the ttl*/
            ip_hdr->ip_ttl = ip_hdr->ip_ttl - 1;
            /* Recomputing Checksum */
+           ip_hdr->ip_sum = 0;
            ip_hdr->ip_sum = cksum(ip_hdr, sizeof(sr_ip_hdr_t));
 
            if(ip_hdr->ip_ttl == 0)
@@ -73,6 +74,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                }
                else
                {
+                   
                    /*
                         Send an ARP request for the next-hop IP (if one hasn't been
                         sent within the last second), and add the packet to the queue 
