@@ -9,7 +9,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
     }
     else
     {
-       printf("Received a Good IP Packet\n");
+       printf("\nSane IP packet\n");
 
        /* Find Destination !*/
        struct sr_if *ifaces = inst->if_list;
@@ -27,7 +27,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
        
        if(destination_iface == NULL)
        {
-           Debug("\tThis packet is not meant for us. We'll re-route\n");
+           Debug("\nPacket not destined for this router. Will be rerouted\n");
 
            /* Decreasing the ttl*/
            ip_hdr->ip_ttl = ip_hdr->ip_ttl - 1;
@@ -37,13 +37,13 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
 
            if(ip_hdr->ip_ttl == 0)
            {
-               Debug("\tThis packet has expired. Simply dropping it\n\tSending a ICMP packet for consistency.\n");
+               Debug("\nPacket Expired. Dropping.\n");
 
                /*
                 Send corresponding ICMP packet
                 Time exceeded (type 11, code 0)
                */
-               sr_send_icmp_t11(inst, packet, iface->ip, iface);
+               sr_send_icmp_t11(inst, packet, len, iface->ip, iface);
                return;
            }
 
@@ -53,7 +53,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
            if(forward_rt_entry)
            {
 
-               Debug("\tFound a routing table entry to forward the packet\n");
+               Debug("\nRouting table entry found to forward the packet\n");
                /*
                     Check the ARP cache for the next-hop MAC address corresponding to the next-hop IP.
                */
@@ -67,7 +67,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                    /*
                         ARP entry found. We'll forward it directly. :P
                    */
-                   Debug("\tFound a ARP entry in cache. Forwarding it.\n");
+                   Debug("\nARP entry found in arpcache. Forwarding the packet.\n");
                    sr_forward_packet(inst, packet, arp_entry->mac, len, iface);
                    free(arp_entry);
                    return;
@@ -80,9 +80,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         sent within the last second), and add the packet to the queue 
                         of packets waiting on this ARP request.
                    */
-                   Debug("\tNo ARP entry found in cache. Enqueing this request.\n");
-                   printf("\n%d\n",ntohs(ip_hdr->ip_dst));
-                   print_hdrs(packet, len);
+                   Debug("\nNo ARP entry found in cache. Enqueing this packet.\n");
                    /* Enqueing */
                    struct sr_arpreq *arp_req = sr_arpcache_queuereq(
                        &(inst->cache),
@@ -91,7 +89,6 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                        len,
                        forward_rt_entry->interface
                    );
-                   print_hdrs((uint8_t *)(arp_req->packets),len);
                    handle_arpreq(inst,arp_req,len);
                    
                }
@@ -99,14 +96,14 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
            }
            else
            {
-               Debug("No routing table entry was found.\n");
+               Debug("\nNo routing table entry found. Destination Unreachable\n");
                /*JK LOL*/
 
                /*
                     Send corresponding ICMP packet.
                     Destination net unreachable (type 3, code 0)
                */
-               sr_send_icmp_t3(inst, packet, 0x0 ,iface->ip, iface);
+               sr_send_icmp_t3(inst, packet, len,0x0 ,iface->ip, iface);
            }
        }
        else
@@ -115,7 +112,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                 This packet was for us.
             */   
 
-            Debug("Packet is meant for this router!\n");
+            Debug("\nPacket is meant for this router!\n");
 
             if(ip_hdr->ip_p == ip_protocol_icmp)
             {
@@ -132,7 +129,8 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                     Send corresponding ICMP packet
                     Port unreachable (type 3, code 3)
                 */
-                sr_send_icmp_t3(inst, packet, 0x3, destination_iface->ip, iface);
+                Debug("\nPort Unreacheable\n");
+                sr_send_icmp_t3(inst, packet, len,0x3, destination_iface->ip, iface);
             }
        }
     }

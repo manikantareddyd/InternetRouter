@@ -5,11 +5,11 @@ void sr_process_arp_packet(struct sr_instance * inst,uint8_t * packet, unsigned 
     switch(ntohs(request->ar_op))
     {
         case arp_op_request:
-            Debug("Its an ARP Request\n");
+            Debug("ARP Request\n");
             sr_arp_reply_to_request(inst, packet,len,interface);
             break;
         case arp_op_reply:
-            Debug("Its an ARP Reply\n");
+            Debug("ARP Reply\n");
             sr_process_arp_reply(inst,packet,len,interface);
             break;
         default:
@@ -21,10 +21,9 @@ void sr_arp_reply_to_request(struct sr_instance *inst, uint8_t *packet, unsigned
 {
     struct sr_arp_hdr* request = (struct sr_arp_hdr*)(packet + sizeof(struct sr_ethernet_hdr));
     struct sr_if *iface =sr_get_interface(inst, interface);
-
     if(iface->ip == request->ar_tip)
     {
-        Debug("\tThis packet is indeed for this router. Sending an ARP Reply \n");
+        Debug("\nPacket meant for this router. Sending an ARP Reply \n");
         /*
             We'll send a ethernet packet (a arp packet) in response
         */
@@ -39,9 +38,8 @@ void sr_arp_reply_to_request(struct sr_instance *inst, uint8_t *packet, unsigned
 void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned int len, char * interface)
 {
     struct sr_arp_hdr* arp_reply = (struct sr_arp_hdr*)(packet + sizeof(sr_ethernet_hdr_t));
-    print_hdr_arp(packet + sizeof(sr_ethernet_hdr_t));
-    if(inst->cache.requests==NULL) Debug("\tHola\n");
-    else Debug("\tRequests in cache are present\n");
+    if(inst->cache.requests==NULL) Debug("\nNo pending requests in cache\n");
+    else Debug("\nPending Requests in Cache\n");
     struct sr_arpreq *arp_request = sr_arpcache_insert(
         &(inst->cache),
         arp_reply->ar_sha,
@@ -53,7 +51,7 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
 
     if(arp_request)
     {
-        Debug("\tSending out packets for the requests in queue\n");
+        Debug("\nSending out packets for the requests in queue\n");
         struct sr_packet *packets = arp_request->packets;
         while(packets)
         {
@@ -67,6 +65,6 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
     }
     else
     {
-        Debug("\tNothing to do here.\n");
+        Debug("\nNothing to do here.\n");
     }
 }

@@ -33,19 +33,24 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req, unsigned int l
 /* TODO: Fill this in */
 
     struct sr_if *iface =sr_get_interface(sr, req->packets->iface);
+    struct sr_if *ifaces;
     time_t current_time = time(NULL);
     if(difftime(current_time, req->sent) > 1.0)
     {
-        if(req->times_sent < 5)
+        if(req->times_sent < 2)
         {
-            printf("Sending ARP request %d\n",req->times_sent);
+            printf("\nSending ARP request %d\n",req->times_sent);
             
             /*
                 We'll send a ethernet packet (a arp packet) in response
             */
-            print_hdr_eth((uint8_t *)(req->packets->buf));
-            print_hdr_arp((uint8_t *)(req->packets->buf + sizeof(sr_ethernet_hdr_t)));
-            sr_send_arp_request(sr,(uint8_t *)(req->packets->buf), sizeof(sr_ethernet_hdr_t)+sizeof(sr_arp_hdr_t),iface);
+            ifaces = sr->if_list;
+            while(ifaces)
+            {
+                sr_send_arp_request_ip(sr,(uint8_t *)(req->packets->buf), sizeof(sr_ethernet_hdr_t)+sizeof(sr_arp_hdr_t), req->ip,ifaces);
+                ifaces = ifaces->next;
+            }
+            
             req->sent = time(NULL);
             req->times_sent = req->times_sent + 1;
         }
@@ -54,13 +59,13 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req, unsigned int l
             /*
                 We tried so hard (5 times) but still didn't get a reply
             */
-            Debug("\tNo ARP reply found, dropping the packet\n");
+            Debug("\nNo ARP reply found, dropping the packet\n");
 
             /*
             Send corresponding ICMP packets.
             Destination host unreachable (type 3, code 1)
             */
-            sr_send_icmp_t3(sr, (uint8_t *)(req->packets), 0x1, iface->ip, iface);
+            sr_send_icmp_t3(sr, (uint8_t *)(req->packets->buf), req->packets->len , 0x1, iface->ip, iface);
             sr_arpreq_destroy(&(sr->cache), req); 
         }
     }
@@ -121,7 +126,7 @@ void sr_handlepacket(struct sr_instance* sr,
     assert(packet);
     assert(interface);
 
-    printf("%s -> Received packet of length %d\n",interface,len);
+    printf("\n%s -> Received packet of length %d\n",interface,len);
 
     /* TODO: Add forwarding logic here */
     struct sr_ethernet_hdr * eth_hdr = (struct sr_ethernet_hdr *) packet;
@@ -130,14 +135,12 @@ void sr_handlepacket(struct sr_instance* sr,
     
     if(frame_type == ethertype_ip)
     {
-        printf("IP TYPE RECEIVED\n");
-        print_hdr_eth(packet);
+        printf("\nIP PACKET RECEIVED\n");
         sr_process_ip_packet(sr,packet,len,interface);
     }
     else if (frame_type == ethertype_arp)
     {
-        printf("ARP TYPE RECEIVED\n");
-        print_hdr_eth(packet);
+        printf("\nARP PACKET RECEIVED\n");
         sr_process_arp_packet(sr, packet, len, interface);
     }
     else
