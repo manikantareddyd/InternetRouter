@@ -28,7 +28,7 @@ void sr_arp_reply_to_request(struct sr_instance *inst, uint8_t *packet, unsigned
         /*
             We'll send a ethernet packet (a arp packet) in response
         */
-        sr_send_arp_request(inst, packet, iface);
+        sr_send_arp_request(inst, packet, len, iface);
     }
     else
     {
@@ -43,27 +43,27 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
     if(inst->cache.requests==NULL) Debug("\tHola\n");
     else Debug("\tRequests in cache are present\n");
     struct sr_arpreq *arp_request = sr_arpcache_insert(
-        &inst->cache,
+        &(inst->cache),
         arp_reply->ar_sha,
         arp_reply->ar_sip
     );
-    Debug("\nPrinting Cache\n");
-    sr_arpcache_dump(&inst->cache);
+    /*Debug("\nPrinting Cache\n");
+    sr_arpcache_dump(&(inst->cache));*/
     struct sr_if *iface =sr_get_interface(inst, interface);
 
     if(arp_request)
     {
-        Debug("\tSending out packets in the resolution queue\n");
+        Debug("\tSending out packets for the requests in queue\n");
         struct sr_packet *packets = arp_request->packets;
         while(packets)
         {
-            /* Create a forward Packer */
+            /*Forward the Packet */
             
             sr_forward_packet(inst,packets->buf,arp_reply->ar_sha,packets->len,iface);
             /*Move on to see if there are more  :( */
             packets = packets->next;
         }
-        sr_arpreq_destroy(&inst->cache, arp_request);
+        sr_arpreq_destroy(&(inst->cache), arp_request);
     }
     else
     {

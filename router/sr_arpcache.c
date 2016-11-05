@@ -17,11 +17,15 @@
 */
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
   /* TODO: Fill this in */
-    struct sr_arpreq *req = sr->cache.requests;
+    struct sr_arpreq *req = (sr->cache).requests;
+    struct sr_arpreq *tmp_req = (struct sr_arpreq *)(malloc(sizeof(struct sr_arpreq)));
     while(req != NULL)
     {
-        handle_arpreq(sr,req);
-        req = req->next;
+        /*tmp_req = req;*/
+        memcpy(tmp_req, req, sizeof(struct sr_arpreq));
+        handle_arpreq(sr,req, sizeof(sr_ethernet_hdr_t)+sizeof(sr_arp_hdr_t));
+        /* req = (struct sr_arpreq *)(malloc(sizeof(struct sr_arpreq)));*/
+        req = tmp_req->next;
     }
 }
 

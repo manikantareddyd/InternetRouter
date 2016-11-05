@@ -37,7 +37,7 @@ void sr_forward_packet(struct sr_instance *inst, uint8_t *packet, unsigned char 
     );
 }
 
-void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, struct sr_if *iface)
+void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, unsigned int len, struct sr_if *iface)
 {
     /* headers */
     
@@ -47,8 +47,8 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, struct sr_if
     /* Create a Reply Packer */
     uint8_t *arp_reply_packet = (uint8_t *) malloc(arp_reply_packet_len);
     memset(arp_reply_packet, 0,  arp_reply_packet_len * sizeof(uint8_t));
-    /*Debug("\nOriginal packet\n");
-    print_hdrs(packet, arp_reply_packet_len);*/
+    Debug("\nOriginal packet\n");
+    print_hdrs(packet, len);
     /* Fill in the reply ethernet Header*/
     sr_ethernet_hdr_t *reply_eth_hdr = (sr_ethernet_hdr_t *)(arp_reply_packet);
     reply_eth_hdr->ether_type = htons(ethertype_arp);
@@ -90,8 +90,8 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, struct sr_if
 
     reply_arp_hdr->ar_sip = iface->ip;
     reply_arp_hdr->ar_tip = request_arp_hdr->ar_sip;
-    /*Debug("\nARP Reply Packet\n");
-    print_hdrs(arp_reply_packet,arp_reply_packet_len);*/
+    Debug("\nARP Reply Packet\n");
+    print_hdrs(arp_reply_packet,arp_reply_packet_len);
     sr_send_packet(
         inst,
         arp_reply_packet,

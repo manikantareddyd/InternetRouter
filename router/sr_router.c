@@ -29,7 +29,7 @@
 /* TODO: Add helper functions here... */
 
 /* See pseudo-code in sr_arpcache.h */
-void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
+void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req, unsigned int len){
 /* TODO: Fill this in */
 
     struct sr_if *iface =sr_get_interface(sr, req->packets->iface);
@@ -43,7 +43,9 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
             /*
                 We'll send a ethernet packet (a arp packet) in response
             */
-            sr_send_arp_request(sr,(uint8_t *)(req->packets),iface);
+            print_hdr_eth((uint8_t *)(req->packets->buf));
+            print_hdr_arp((uint8_t *)(req->packets->buf + sizeof(sr_ethernet_hdr_t)));
+            sr_send_arp_request(sr,(uint8_t *)(req->packets->buf), sizeof(sr_ethernet_hdr_t)+sizeof(sr_arp_hdr_t),iface);
             req->sent = time(NULL);
             req->times_sent = req->times_sent + 1;
         }
@@ -59,7 +61,7 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
             Destination host unreachable (type 3, code 1)
             */
             sr_send_icmp_t3(sr, (uint8_t *)(req->packets), 0x1, iface->ip, iface);
-            sr_arpreq_destroy(&sr->cache, req); 
+            sr_arpreq_destroy(&(sr->cache), req); 
         }
     }
 }
@@ -129,11 +131,13 @@ void sr_handlepacket(struct sr_instance* sr,
     if(frame_type == ethertype_ip)
     {
         printf("IP TYPE RECEIVED\n");
+        print_hdr_eth(packet);
         sr_process_ip_packet(sr,packet,len,interface);
     }
     else if (frame_type == ethertype_arp)
     {
         printf("ARP TYPE RECEIVED\n");
+        print_hdr_eth(packet);
         sr_process_arp_packet(sr, packet, len, interface);
     }
     else

@@ -81,15 +81,18 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         of packets waiting on this ARP request.
                    */
                    Debug("\tNo ARP entry found in cache. Enqueing this request.\n");
+                   printf("\n%d\n",ntohs(ip_hdr->ip_dst));
+                   print_hdrs(packet, len);
                    /* Enqueing */
                    struct sr_arpreq *arp_req = sr_arpcache_queuereq(
-                       &inst->cache,
+                       &(inst->cache),
                        ip_hdr->ip_dst,
-                       packet,
+                       (uint8_t *)packet,
                        len,
                        forward_rt_entry->interface
                    );
-                   handle_arpreq(inst,arp_req);
+                   print_hdrs((uint8_t *)(arp_req->packets),len);
+                   handle_arpreq(inst,arp_req,len);
                    
                }
 
