@@ -50,7 +50,7 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
         else
         {
             /*
-            We tried so hard (5 times) but still didn't get a reply
+                We tried so hard (5 times) but still didn't get a reply
             */
             Debug("\tNo ARP reply found, dropping the packet\n");
 
@@ -59,7 +59,7 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
             Destination host unreachable (type 3, code 1)
             */
             sr_send_icmp_t3(sr, (uint8_t *)(req->packets), 0x1, iface->ip, iface);
-            sr_arpreq_destroy(&sr->cache, req);
+            sr_arpreq_destroy(&sr->cache, req); 
         }
     }
 }
@@ -119,7 +119,7 @@ void sr_handlepacket(struct sr_instance* sr,
     assert(packet);
     assert(interface);
 
-    printf("*** -> Received packet of length %d\n",len);
+    printf("%s -> Received packet of length %d\n",interface,len);
 
     /* TODO: Add forwarding logic here */
     struct sr_ethernet_hdr * eth_hdr = (struct sr_ethernet_hdr *) packet;
