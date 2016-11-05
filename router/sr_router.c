@@ -58,6 +58,7 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
             Send corresponding ICMP packets.
             Destination host unreachable (type 3, code 1)
             */
+            sr_send_icmp_t3(sr, (uint8_t *)(req->packets), 0x1, iface->ip, iface);
             sr_arpreq_destroy(&sr->cache, req);
         }
     }

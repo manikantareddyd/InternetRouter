@@ -42,7 +42,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                 Send corresponding ICMP packet
                 Time exceeded (type 11, code 0)
                */
-               sr_send_icmp_t11(inst, packet, len, iface);
+               sr_send_icmp_t11(inst, packet, iface->ip, iface);
                return;
            }
 
@@ -103,6 +103,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                     Send corresponding ICMP packet.
                     Destination net unreachable (type 3, code 0)
                */
+               sr_send_icmp_t3(inst, packet, 0x0 ,iface->ip, iface);
            }
        }
        else
@@ -120,6 +121,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                     Send corresponding ICMP packet
                     Echo reply (type 0)
                 */
+                sr_send_icmp_echo_reply(inst, packet, len, destination_iface, iface);
             }
             else
             {
@@ -127,6 +129,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                     Send corresponding ICMP packet
                     Port unreachable (type 3, code 3)
                 */
+                sr_send_icmp_t3(inst, packet, 0x3, destination_iface->ip, iface);
             }
        }
     }
