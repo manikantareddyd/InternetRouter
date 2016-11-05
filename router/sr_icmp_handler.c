@@ -51,60 +51,41 @@ void sr_send_icmp_t11(struct sr_instance* inst, uint8_t *packet,  uint32_t src_i
 
 void sr_send_icmp_echo_reply(struct sr_instance *sr, uint8_t *packet, unsigned int len, struct sr_if *dest_iface, struct sr_if *recv_iface )
 {
-
-    /* get icmp echo request headers*/
     sr_ethernet_hdr_t *req_eth_hdr = (sr_ethernet_hdr_t *)(packet);
     sr_ip_hdr_t *req_ip_hdr = (sr_ip_hdr_t *)(packet + sizeof(sr_ethernet_hdr_t));
     sr_icmp_hdr_t *req_icmp_hdr = (sr_icmp_hdr_t *)(packet + sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t));
 
     uint8_t *icmp_echo_rely_packet;
-    /* the same length with request packet */
     icmp_echo_rely_packet = (uint8_t *) malloc(len);
     memset(icmp_echo_rely_packet, 0, len * sizeof(uint8_t));
 
-    /* set eth header */
     sr_ethernet_hdr_t *rply_eth_hdr = (sr_ethernet_hdr_t *)(icmp_echo_rely_packet);
     rply_eth_hdr->ether_type = htons(ethertype_ip);
     memcpy(rply_eth_hdr->ether_dhost, req_eth_hdr->ether_shost, ETHER_ADDR_LEN);
-    /* source host address should be the destination iface's address*/
     memcpy(rply_eth_hdr->ether_shost, recv_iface->addr, ETHER_ADDR_LEN);
 
-    /* set ip header */
     sr_ip_hdr_t *rply_ip_hdr = (sr_ip_hdr_t *)(icmp_echo_rely_packet + sizeof(sr_ethernet_hdr_t));
     memcpy(rply_ip_hdr, req_ip_hdr, sizeof(sr_ip_hdr_t));
     rply_ip_hdr->ip_src = dest_iface->ip;
     rply_ip_hdr->ip_dst = req_ip_hdr->ip_src;
-    /* compute ip header checksum */
     rply_ip_hdr->ip_sum = 0;
-    /* ip header check sum is only for the header*/
     rply_ip_hdr->ip_sum = cksum(rply_ip_hdr, sizeof(sr_ip_hdr_t));
 
-    /* set icmp header */
     sr_icmp_hdr_t *rply_icmp_hdr = (sr_icmp_hdr_t *)(icmp_echo_rely_packet + sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t));
     memcpy(rply_icmp_hdr, req_icmp_hdr, sizeof(sr_icmp_hdr_t));
-    /* type = 0, code = 0: icmp	echo reply*/
+
     rply_icmp_hdr->icmp_type = htons(0x00);
     rply_icmp_hdr->icmp_code = htons(0x00);
 
-    /* The same data with icmp echo request packet */
-    /* (identifier, sequence number, timestamp) */
     unsigned int total_hdr_len = sizeof(sr_ethernet_hdr_t) +
     sizeof(sr_ip_hdr_t) + sizeof(sr_icmp_hdr_t);
     if(total_hdr_len < len)
     memcpy(icmp_echo_rely_packet + total_hdr_len, packet + total_hdr_len,
     len - total_hdr_len);
 
-    /* compute icmp header checksum */
     rply_icmp_hdr->icmp_sum = 0;
-    /* NOTE The ICMP checksum is calculated over the total ICMP packet */
     rply_icmp_hdr->icmp_sum = cksum(rply_icmp_hdr, len -
     sizeof(sr_ethernet_hdr_t) - sizeof(sr_ip_hdr_t));
 
-    /* send packet */
-
-    /* NOTE sr_send_packet
-    return 0 : success
-    return -1 : failure
-    */
     sr_send_packet(sr, icmp_echo_rely_packet, len, recv_iface->name);
 }
