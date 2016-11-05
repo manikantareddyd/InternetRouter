@@ -66,7 +66,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                    /*
                         ARP entry found. We'll forward it directly. :P
                    */
-                   Debug("\tFound a ARP entry in cache.");
+                   Debug("\tFound a ARP entry in cache. Forwarding it.\n");
                    sr_forward_packet(inst, packet, arp_entry->mac, len, iface);
                    free(arp_entry);
                    return;
@@ -78,7 +78,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         sent within the last second), and add the packet to the queue 
                         of packets waiting on this ARP request.
                    */
-                   Debug("\tNo ARP entry found in cache.\n");
+                   Debug("\tNo ARP entry found in cache. Enqueing this request.\n");
                    /* Enqueing */
                    struct sr_arpreq *arp_req = sr_arpcache_queuereq(
                        &inst->cache,
@@ -87,8 +87,6 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                        len,
                        forward_rt_entry->interface
                    );
-                   if(inst->cache.requests == NULL) Debug("This is NULL as feared\n");
-                   else Debug("Its Fine\n");
                    handle_arpreq(inst,arp_req);
                    
                }

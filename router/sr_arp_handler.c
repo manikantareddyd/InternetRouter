@@ -34,21 +34,20 @@ void sr_arp_reply_to_request(struct sr_instance *inst, uint8_t *packet, unsigned
     {
         Debug("\tThis ARP packet is not for this. Dropping it :P\n");
     }
-
 }
 
 void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned int len, char * interface)
 {
     struct sr_arp_hdr* arp_reply = (struct sr_arp_hdr*)(packet + sizeof(sr_ethernet_hdr_t));
-    if(inst->cache.requests==NULL) Debug("\tAila\n");
+    if(inst->cache.requests==NULL) Debug("\tHola\n");
     else Debug("\tRequests in cache are present\n");
     struct sr_arpreq *arp_request = sr_arpcache_insert(
         &inst->cache,
         arp_reply->ar_sha,
         arp_reply->ar_sip
     );
-    /*Debug("\nPrinting Cache\n");
-    sr_arpcache_dump(&inst->cache);*/
+    Debug("\nPrinting Cache\n");
+    sr_arpcache_dump(&inst->cache);
     struct sr_if *iface =sr_get_interface(inst, interface);
 
     if(arp_request)
