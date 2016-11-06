@@ -45,6 +45,12 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
     }
     else 
     {
+        struct sr_arpreq *tmp = inst->cache.requests;
+        while(tmp)
+        {
+            print_addr_ip_int(tmp->ip);
+            tmp =tmp->next;
+        }
         Debug("\nPending Requests in Cache\n");
     }
     struct sr_arpreq *arp_request = sr_arpcache_insert( &(inst->cache), arp_reply->ar_sha, arp_reply->ar_sip);
