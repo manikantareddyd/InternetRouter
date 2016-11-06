@@ -1,5 +1,5 @@
 #include "sr_packet_handler.h"
-void sr_forward_packet(struct sr_instance *inst, uint8_t *packet, unsigned char *sender_hardware_address, unsigned int len, struct sr_if *iface)
+void sr_forward_packet(struct sr_instance *inst, uint8_t *packet, unsigned char *sender_hardware_address, unsigned char *destination_hardware_address,unsigned int len, struct sr_if *iface)
 {
     Debug("\nOriginal packet to forward\n");
     /*print_hdrs(packet, len);*/
@@ -14,7 +14,7 @@ void sr_forward_packet(struct sr_instance *inst, uint8_t *packet, unsigned char 
 
     memcpy(
         forward_eth_header->ether_shost,
-        iface->addr,
+        destination_hardware_address,
         ETHER_ADDR_LEN
     );
     
@@ -48,7 +48,7 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, unsigned int
     uint8_t *arp_reply_packet = (uint8_t *) malloc(arp_reply_packet_len);
     memset(arp_reply_packet, 0,  arp_reply_packet_len );
     Debug("\nOriginal arp packet\n");
-    /*print_hdrs(packet, len);*/
+    print_hdrs(packet, len);
     /* Fill in the reply ethernet Header*/
     sr_ethernet_hdr_t *reply_eth_hdr = (sr_ethernet_hdr_t *)(arp_reply_packet);
     reply_eth_hdr->ether_type = htons(ethertype_arp);
@@ -68,13 +68,19 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, unsigned int
 
     /* Fill in the reply arp header  */
     sr_arp_hdr_t *reply_arp_hdr = (sr_arp_hdr_t *)(arp_reply_packet+sizeof(struct sr_ethernet_hdr));
-    reply_arp_hdr->ar_op = htons(arp_op_reply);
     /* Since almost everything remains same. We'll copy all and set what's required*/
     memcpy(
         reply_arp_hdr,
         request_arp_hdr,
         sizeof(sr_arp_hdr_t)
     );
+    
+    
+    reply_arp_hdr->ar_op = htons(arp_op_reply);
+    reply_arp_hdr->ar_hrd = htons(1);
+    reply_arp_hdr->ar_pro = htons(0x0800);
+    reply_arp_hdr->ar_hln = 6;
+    reply_arp_hdr->ar_pln = 4;
 
     /* More MAC copying */
     memcpy(
@@ -91,7 +97,7 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, unsigned int
     reply_arp_hdr->ar_sip = iface->ip;
     reply_arp_hdr->ar_tip = request_arp_hdr->ar_sip;
     Debug("\nARP Reply Packet for arp request\n");
-    /*print_hdrs(arp_reply_packet,arp_reply_packet_len);*/
+    print_hdrs(arp_reply_packet,arp_reply_packet_len);
     sr_send_packet(
         inst,
         arp_reply_packet,
@@ -102,6 +108,9 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, unsigned int
 
 void sr_send_arp_request_ip(struct sr_instance *inst, uint32_t req_ip, struct sr_if *iface)
 {
+    uint8_t broadcast[ETHER_ADDR_LEN];
+    memset(broadcast, 0xFF, ETHER_ADDR_LEN);
+
     int arp_reply_packet_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_arp_hdr_t);
     /* Create a Reply Packer */
     uint8_t *arp_reply_packet = (uint8_t *) malloc(arp_reply_packet_len);
@@ -119,10 +128,19 @@ void sr_send_arp_request_ip(struct sr_instance *inst, uint32_t req_ip, struct sr
         ETHER_ADDR_LEN
     );
 
+    memcpy(
+        reply_eth_hdr->ether_dhost,
+        broadcast,
+        ETHER_ADDR_LEN
+    );
+
     /* Fill in the reply arp header  */
     sr_arp_hdr_t *reply_arp_hdr = (sr_arp_hdr_t *)(arp_reply_packet+sizeof(struct sr_ethernet_hdr));
     reply_arp_hdr->ar_op = htons(arp_op_reply);
-
+    reply_arp_hdr->ar_hrd = htons(1);
+    reply_arp_hdr->ar_pro = htons(0x0800);
+    reply_arp_hdr->ar_hln = 6;
+    reply_arp_hdr->ar_pln = 4;
     /* More MAC copying */
     memcpy(
         reply_arp_hdr->ar_sha,
@@ -130,11 +148,16 @@ void sr_send_arp_request_ip(struct sr_instance *inst, uint32_t req_ip, struct sr
         ETHER_ADDR_LEN
     );
 
+    memcpy(
+        reply_arp_hdr->ar_tha,
+        broadcast,
+        ETHER_ADDR_LEN
+    );
 
     reply_arp_hdr->ar_sip = iface->ip;
     reply_arp_hdr->ar_tip = req_ip;
-/*    Debug("\nARP Broadcast Packet for ip packet\n");
-    print_hdrs(arp_reply_packet,arp_reply_packet_len);*/
+    Debug("\nARP Broadcast Packet for ip packet\n");
+    print_hdrs(arp_reply_packet,arp_reply_packet_len);
     sr_send_packet(
         inst,
         arp_reply_packet,

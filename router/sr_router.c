@@ -43,12 +43,13 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
             /*
                 We'll send a ethernet packet (a arp packet) in response
             */
-            ifaces = sr->if_list;
+            /*ifaces = sr->if_list;
             while(ifaces)
-            {
+            {*/
+            ifaces = sr_get_interface(sr, (req->packets)->iface);
                 sr_send_arp_request_ip(sr,req->ip,ifaces);
                 ifaces = ifaces->next;
-            }
+            /*}*/
             
             req->sent = time(NULL);
             req->times_sent = req->times_sent + 1;

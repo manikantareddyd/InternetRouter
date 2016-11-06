@@ -68,7 +68,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         ARP entry found. We'll forward it directly. :P
                    */
                    Debug("\nARP entry found in arpcache. Forwarding the packet.\n");
-                   sr_forward_packet(inst, packet, arp_entry->mac, len, iface);
+                   sr_forward_packet(inst, packet, sr_get_interface(inst, forward_rt_entry->interface)->addr, arp_entry->mac, len, iface);
                    free(arp_entry);
                    return;
                }
@@ -84,7 +84,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                    /* Enqueing */
                    struct sr_arpreq *arp_req = sr_arpcache_queuereq(
                        &(inst->cache),
-                       ip_hdr->ip_dst,
+                       forward_rt_entry->gw.s_addr,
                        (uint8_t *)packet,
                        len,
                        forward_rt_entry->interface
