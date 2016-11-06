@@ -100,15 +100,13 @@ void sr_send_arp_request(struct sr_instance *inst, uint8_t *packet, unsigned int
     );
 }
 
-void sr_send_arp_request_ip(struct sr_instance *inst, uint8_t *packet,  uint32_t req_ip, unsigned int len, struct sr_if *iface)
+void sr_send_arp_request_ip(struct sr_instance *inst, uint32_t req_ip, struct sr_if *iface)
 {
     /* headers */
-    sr_ip_hdr_t *ip_hdr = (sr_ip_hdr_t *)(packet + sizeof(sr_ethernet_hdr_t));
     int arp_reply_packet_len = sizeof(sr_ethernet_hdr_t) + sizeof(sr_arp_hdr_t);
     /* Create a Reply Packer */
     uint8_t *arp_reply_packet = (uint8_t *) malloc(arp_reply_packet_len);
     memset(arp_reply_packet, 0,  arp_reply_packet_len );
-    Debug("\nOriginal ip packet\n");
     /*print_hdrs(packet, len);*/
     /* Fill in the reply ethernet Header*/
     sr_ethernet_hdr_t *reply_eth_hdr = (sr_ethernet_hdr_t *)(arp_reply_packet);
@@ -135,9 +133,9 @@ void sr_send_arp_request_ip(struct sr_instance *inst, uint8_t *packet,  uint32_t
 
 
     reply_arp_hdr->ar_sip = iface->ip;
-    reply_arp_hdr->ar_tip = ip_hdr->ip_dst;
+    reply_arp_hdr->ar_tip = req_ip;
     Debug("\nARP Broadcast Packet for ip packet\n");
-    /*print_hdrs(arp_reply_packet,arp_reply_packet_len);*/
+    print_hdrs(arp_reply_packet,arp_reply_packet_len);
     sr_send_packet(
         inst,
         arp_reply_packet,

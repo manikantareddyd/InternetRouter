@@ -29,15 +29,14 @@
 /* TODO: Add helper functions here... */
 
 /* See pseudo-code in sr_arpcache.h */
-void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req, unsigned int len){
+void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
 /* TODO: Fill this in */
 
-    struct sr_if *iface =sr_get_interface(sr, req->packets->iface);
     struct sr_if *ifaces;
     time_t current_time = time(NULL);
     if(difftime(current_time, req->sent) > 1.0)
     {
-        if(req->times_sent < 2)
+        if(req->times_sent < 5)
         {
             printf("\nSending ARP request %d\n",req->times_sent);
             
@@ -47,7 +46,7 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req, unsigned int l
             ifaces = sr->if_list;
             while(ifaces)
             {
-                sr_send_arp_request_ip(sr,(uint8_t *)(req->packets->buf), sizeof(sr_ethernet_hdr_t)+sizeof(sr_arp_hdr_t), req->ip,ifaces);
+                sr_send_arp_request_ip(sr,req->ip,ifaces);
                 ifaces = ifaces->next;
             }
             
@@ -62,10 +61,16 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req, unsigned int l
             Debug("\nNo ARP reply found, dropping the packet\n");
 
             /*
-            Send corresponding ICMP packets.
-            Destination host unreachable (type 3, code 1)
+                Send corresponding ICMP packets.
+                Destination host unreachable (type 3, code 1)
             */
-            sr_send_icmp_t3(sr, (uint8_t *)(req->packets->buf), req->packets->len , 0x1, iface->ip, iface);
+            struct sr_packet *packets_list = req->packets;
+            while(packets_list)
+            {
+                sr_send_icmp_t3(sr, (uint8_t *)(packets_list->buf), packets_list->len , 0x1, sr_get_interface(sr, packets_list->iface)->ip, sr_get_interface(sr, packets_list->iface));
+                packets_list = packets_list->next;
+            }
+            
             sr_arpreq_destroy(&(sr->cache), req); 
         }
     }

@@ -21,11 +21,10 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
     struct sr_arpreq *tmp_req = (struct sr_arpreq *)(malloc(sizeof(struct sr_arpreq)));
     while(req != NULL)
     {
-        /*tmp_req = req;*/
-        memcpy(tmp_req, req, sizeof(struct sr_arpreq));
-        handle_arpreq(sr,req, sizeof(sr_ethernet_hdr_t)+sizeof(sr_arp_hdr_t));
+        tmp_req = req->next;
+        handle_arpreq(sr,req);
         /* req = (struct sr_arpreq *)(malloc(sizeof(struct sr_arpreq)));*/
-        req = tmp_req->next;
+        req = tmp_req;
     }
 }
 
@@ -115,9 +114,8 @@ struct sr_arpreq *sr_arpcache_insert(struct sr_arpcache *cache,
                                      uint32_t ip)
 {
     pthread_mutex_lock(&(cache->lock));
-    
     struct sr_arpreq *req, *prev = NULL, *next = NULL; 
-    for (req = cache->requests; req != NULL; req = req->next) {
+    for (req = cache->requests; req != NULL; req = req->next) {        
         if (req->ip == ip) {            
             if (prev) {
                 next = req->next;

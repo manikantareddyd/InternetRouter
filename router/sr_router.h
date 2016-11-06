@@ -85,7 +85,7 @@ void sr_set_ether_addr(struct sr_instance* , const unsigned char* );
 void sr_print_if_list(struct sr_instance* );
 
 /* -- sr_arpcache.c and sr_router.c -- */
-void handle_arpreq(struct sr_instance* , struct sr_arpreq* , unsigned int len);
+void handle_arpreq(struct sr_instance* , struct sr_arpreq* );
 
 
 

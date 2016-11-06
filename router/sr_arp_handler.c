@@ -40,11 +40,7 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
     struct sr_arp_hdr* arp_reply = (struct sr_arp_hdr*)(packet + sizeof(sr_ethernet_hdr_t));
     if(inst->cache.requests==NULL) Debug("\nNo pending requests in cache\n");
     else Debug("\nPending Requests in Cache\n");
-    struct sr_arpreq *arp_request = sr_arpcache_insert(
-        &(inst->cache),
-        arp_reply->ar_sha,
-        arp_reply->ar_sip
-    );
+    struct sr_arpreq *arp_request = sr_arpcache_insert( &(inst->cache), arp_reply->ar_sha, arp_reply->ar_sip);
     /*Debug("\nPrinting Cache\n");
     sr_arpcache_dump(&(inst->cache));*/
     struct sr_if *iface =sr_get_interface(inst, interface);

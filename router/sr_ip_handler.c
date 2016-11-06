@@ -89,7 +89,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                        len,
                        forward_rt_entry->interface
                    );
-                   handle_arpreq(inst,arp_req,len);
+                   handle_arpreq(inst,arp_req);
                    
                }
 
@@ -116,7 +116,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
 
             if(ip_hdr->ip_p == ip_protocol_icmp)
             {
-                Debug("\tReceived a ICMP packet\n");
+                Debug("\nReceived a ICMP packet\n");
                 /*
                     Send corresponding ICMP packet
                     Echo reply (type 0)
