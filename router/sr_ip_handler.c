@@ -74,7 +74,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         sr_get_interface(inst, forward_rt_entry->interface)->addr,
                         arp_entry->mac, 
                         len, 
-                        iface
+                        sr_get_interface(inst, forward_rt_entry->interface)
                     );
                    free(arp_entry);
                    return;
