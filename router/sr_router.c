@@ -48,18 +48,19 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
                 Destination host unreachable (type 3, code 1)
             */
             struct sr_packet *packets_list = req->packets;
-            while(packets_list)
-            {
+            /*while(packets_list)
+            {*/
+                ifaces = sr_get_interface(sr, packets_list->iface);
                 sr_send_icmp_t3(
                     sr, 
                     (uint8_t *)(packets_list->buf), 
                     packets_list->len , 
                     0x1, 
-                    sr_get_interface(sr, packets_list->iface)->ip, 
-                    sr_get_interface(sr, packets_list->iface)
+                    ifaces->ip, 
+                    ifaces
                 );
                 packets_list = packets_list->next;
-            }
+            /*}*/
             
             sr_arpreq_destroy(&(sr->cache), req); 
 

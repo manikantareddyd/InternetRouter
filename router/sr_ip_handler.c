@@ -104,7 +104,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
            }
            else
            {
-               Debug("\nNo routing table entry found. Destination Unreachable\n");
+               Debug("\nNo routing table entry found. Destination Net Unreachable\n");
 
                /*
                     Send corresponding ICMP packet.
@@ -128,6 +128,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                     Send corresponding ICMP packet
                     Echo reply (type 0)
                 */
+                /* To do: Check sanity of this icmp hdr*/
                 sr_send_icmp_echo_reply(inst, packet, len, destination_iface, iface);
             }
             else
