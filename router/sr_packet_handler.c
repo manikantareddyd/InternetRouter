@@ -1,8 +1,8 @@
 #include "sr_packet_handler.h"
-void sr_forward_packet(struct sr_instance *inst, uint8_t *packet, unsigned char *sender_hardware_address, unsigned char *destination_hardware_address,unsigned int len, struct sr_if *iface)
+void sr_forward_packet(struct sr_instance *inst, uint8_t *packet, unsigned char *destination_hardware_address,unsigned char *sender_hardware_address, unsigned int len, struct sr_if *iface)
 {
     Debug("\nOriginal packet to forward\n");
-    /*print_hdrs(packet, len);*/
+    print_hdrs(packet, len);
     sr_ethernet_hdr_t *forward_eth_header = (sr_ethernet_hdr_t *)packet;
 
     /* Doing the MAC copying stuff */
@@ -25,7 +25,7 @@ void sr_forward_packet(struct sr_instance *inst, uint8_t *packet, unsigned char 
     forward_ip_header->ip_sum = cksum(forward_ip_header, sizeof(sr_ip_hdr_t));
 
     Debug("\nModified packet to forward\n");
-    /*print_hdrs(packet, len);*/
+    print_hdrs(packet, len);
 
 
     /* Send this shit now */
@@ -136,7 +136,7 @@ void sr_send_arp_request_ip(struct sr_instance *inst, uint32_t req_ip, struct sr
 
     /* Fill in the reply arp header  */
     sr_arp_hdr_t *reply_arp_hdr = (sr_arp_hdr_t *)(arp_reply_packet+sizeof(struct sr_ethernet_hdr));
-    reply_arp_hdr->ar_op = htons(arp_op_reply);
+    reply_arp_hdr->ar_op = htons(arp_op_request);
     reply_arp_hdr->ar_hrd = htons(1);
     reply_arp_hdr->ar_pro = htons(0x0800);
     reply_arp_hdr->ar_hln = 6;
@@ -148,11 +148,11 @@ void sr_send_arp_request_ip(struct sr_instance *inst, uint32_t req_ip, struct sr
         ETHER_ADDR_LEN
     );
 
-    memcpy(
+    /*memcpy(
         reply_arp_hdr->ar_tha,
         broadcast,
         ETHER_ADDR_LEN
-    );
+    );*/
 
     reply_arp_hdr->ar_sip = iface->ip;
     reply_arp_hdr->ar_tip = req_ip;

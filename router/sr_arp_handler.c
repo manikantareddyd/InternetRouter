@@ -53,9 +53,13 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
         }
         Debug("\nPending Requests in Cache\n");
     }
-    struct sr_arpreq *arp_request = sr_arpcache_insert( &(inst->cache), arp_reply->ar_sha, arp_reply->ar_sip);
+    struct sr_arpreq *arp_request = sr_arpcache_insert( 
+        &(inst->cache), 
+        arp_reply->ar_sha, 
+        arp_reply->ar_sip
+    );
     Debug("\nPrinting Cache\n");
- /*   sr_arpcache_dump(&(inst->cache));*/
+    /*   sr_arpcache_dump(&(inst->cache));*/
     struct sr_if *iface =sr_get_interface(inst, interface);
     if(arp_request)
     {
@@ -66,7 +70,14 @@ void sr_process_arp_reply(struct sr_instance * inst, uint8_t *packet, unsigned i
         {
             /*Forward the Packet */
             next_if = sr_get_interface(inst, packets->iface);
-            sr_forward_packet(inst,packets->buf,next_if->addr,arp_reply->ar_sha,packets->len,iface);
+            sr_forward_packet(
+                inst,
+                packets->buf,
+                next_if->addr,
+                arp_reply->ar_sha,
+                packets->len,
+                iface
+            );
             /*Move on to see if there are more  :( */
             packets = packets->next;
         }

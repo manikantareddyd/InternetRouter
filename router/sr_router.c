@@ -36,25 +36,7 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
     time_t current_time = time(NULL);
     if(difftime(current_time, req->sent) > 1.0)
     {
-        if(req->times_sent < 5)
-        {
-            printf("\nSending ARP request %d\n",req->times_sent);
-            
-            /*
-                We'll send a ethernet packet (a arp packet) in response
-            */
-            /*ifaces = sr->if_list;
-            while(ifaces)
-            {*/
-            ifaces = sr_get_interface(sr, (req->packets)->iface);
-                sr_send_arp_request_ip(sr,req->ip,ifaces);
-                ifaces = ifaces->next;
-            /*}*/
-            
-            req->sent = time(NULL);
-            req->times_sent = req->times_sent + 1;
-        }
-        else
+        if(req->times_sent >= 5)
         {
             /*
                 We tried so hard (5 times) but still didn't get a reply
@@ -68,11 +50,36 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
             struct sr_packet *packets_list = req->packets;
             while(packets_list)
             {
-                sr_send_icmp_t3(sr, (uint8_t *)(packets_list->buf), packets_list->len , 0x1, sr_get_interface(sr, packets_list->iface)->ip, sr_get_interface(sr, packets_list->iface));
+                sr_send_icmp_t3(
+                    sr, 
+                    (uint8_t *)(packets_list->buf), 
+                    packets_list->len , 
+                    0x1, 
+                    sr_get_interface(sr, packets_list->iface)->ip, 
+                    sr_get_interface(sr, packets_list->iface)
+                );
                 packets_list = packets_list->next;
             }
             
             sr_arpreq_destroy(&(sr->cache), req); 
+
+        }
+        else
+        {
+
+            printf("\nSending ARP request %d\n",req->times_sent);
+            
+            /*
+                We'll send a ethernet packet (a arp packet) in response
+            */
+            
+            ifaces = sr_get_interface(sr, (req->packets)->iface);
+            sr_send_arp_request_ip(sr,req->ip,ifaces);
+            ifaces = ifaces->next;
+           
+            
+            req->sent = time(NULL);
+            req->times_sent = req->times_sent + 1;
         }
     }
 }

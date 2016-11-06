@@ -10,7 +10,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
     else
     {
        printf("\nSane IP packet\n");
-
+       print_hdrs(packet, len);
        /* Find Destination !*/
        struct sr_if *ifaces = inst->if_list;
        struct sr_if *destination_iface = NULL;
@@ -68,7 +68,14 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         ARP entry found. We'll forward it directly. :P
                    */
                    Debug("\nARP entry found in arpcache. Forwarding the packet.\n");
-                   sr_forward_packet(inst, packet, sr_get_interface(inst, forward_rt_entry->interface)->addr, arp_entry->mac, len, iface);
+                   sr_forward_packet(
+                        inst, 
+                        packet, 
+                        sr_get_interface(inst, forward_rt_entry->interface)->addr,
+                        arp_entry->mac, 
+                        len, 
+                        iface
+                    );
                    free(arp_entry);
                    return;
                }
@@ -79,12 +86,13 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                         Send an ARP request for the next-hop IP (if one hasn't been
                         sent within the last second), and add the packet to the queue 
                         of packets waiting on this ARP request.
+                        forward_rt_entry->gw.s_addr
                    */
                    Debug("\nNo ARP entry found in cache. Enqueing this packet.\n");
                    /* Enqueing */
                    struct sr_arpreq *arp_req = sr_arpcache_queuereq(
                        &(inst->cache),
-                       forward_rt_entry->gw.s_addr,
+                       ip_hdr->ip_dst,
                        (uint8_t *)packet,
                        len,
                        forward_rt_entry->interface

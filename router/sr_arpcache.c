@@ -19,10 +19,10 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
   /* TODO: Fill this in */
     struct sr_arpreq *req = (sr->cache).requests;
     struct sr_arpreq *tmp_req = (struct sr_arpreq *)(malloc(sizeof(struct sr_arpreq)));
-    while(req != NULL)
+    while(req)
     {
         tmp_req = req->next;
-        Debug("\nsweepreqs called\n");
+        /*Debug("\nsweepreqs called\n");*/
         handle_arpreq(sr,req);
         /* req = (struct sr_arpreq *)(malloc(sizeof(struct sr_arpreq)));*/
         req = tmp_req;
