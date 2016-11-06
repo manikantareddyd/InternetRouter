@@ -47,21 +47,20 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
                 Send corresponding ICMP packets.
                 Destination host unreachable (type 3, code 1)
             */
-            struct sr_packet *packets_list = req->packets;
-            /*while(packets_list)
-            {*/
-                ifaces = sr_get_interface(sr, packets_list->iface);
+            struct sr_packet *packet = req->packets;
+            while(packet)
+            {
+                ifaces = sr_get_interface(sr, packet->iface);
                 sr_send_icmp_t3(
                     sr, 
-                    (uint8_t *)(packets_list->buf), 
-                    packets_list->len , 
+                    (uint8_t *)(packet->buf), 
+                    packet->len , 
                     0x1, 
                     ifaces->ip, 
                     ifaces
                 );
-                packets_list = packets_list->next;
-            /*}*/
-            
+                packet = packet->next;
+            }
             sr_arpreq_destroy(&(sr->cache), req); 
 
         }
@@ -73,12 +72,8 @@ void handle_arpreq(struct sr_instance* sr, struct sr_arpreq *req){
             /*
                 We'll send a ethernet packet (a arp packet) in response
             */
-            
             ifaces = sr_get_interface(sr, (req->packets)->iface);
             sr_send_arp_request_ip(sr,req->ip,ifaces);
-            ifaces = ifaces->next;
-           
-            
             req->sent = time(NULL);
             req->times_sent = req->times_sent + 1;
         }

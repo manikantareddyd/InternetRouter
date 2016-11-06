@@ -110,7 +110,7 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
                     Send corresponding ICMP packet.
                     Destination net unreachable (type 3, code 0)
                */
-               sr_send_icmp_t3(inst, packet, len,0x0 ,iface->ip, iface);
+               sr_send_icmp_t3(inst, packet, len, 0x0 ,iface->ip, iface);
            }
        }
        else

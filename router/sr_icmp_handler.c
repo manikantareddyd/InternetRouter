@@ -34,7 +34,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t * packet, unsigned int len, ui
     reply_icmp_t3_hdr->icmp_sum = cksum(icmp_reply_packet + sizeof(sr_ethernet_hdr_t)+ sizeof(sr_ip_hdr_t), len - sizeof(sr_ethernet_hdr_t)- sizeof(sr_ip_hdr_t));
 
     Debug("\nICMP Being sent\n");
-    /*print_hdrs(icmp_reply_packet, len);*/
+    print_hdrs(icmp_reply_packet, len);
     sr_send_packet(sr, icmp_reply_packet, len, recv_iface->name);
 }
 
