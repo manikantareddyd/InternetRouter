@@ -22,6 +22,7 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
     while(req != NULL)
     {
         tmp_req = req->next;
+        Debug("\nsweepreqs called\n");
         handle_arpreq(sr,req);
         /* req = (struct sr_arpreq *)(malloc(sizeof(struct sr_arpreq)));*/
         req = tmp_req;

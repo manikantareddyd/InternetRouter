@@ -97,7 +97,6 @@ void sr_process_ip_packet(struct sr_instance * inst, uint8_t * packet, unsigned 
            else
            {
                Debug("\nNo routing table entry found. Destination Unreachable\n");
-               /*JK LOL*/
 
                /*
                     Send corresponding ICMP packet.
